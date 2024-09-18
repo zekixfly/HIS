@@ -1,11 +1,14 @@
 // src/pages/ReceptionSystem/index.jsx
 import React, { useState, useEffect } from "react";
-import { Table, Button, Form, Input, Modal } from "antd";
+import { Table, Button, Form, Input, Modal, notification } from "antd";
+import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 
 const ReceptionSystem = ({ user, onLogout }) => {
   const [patients, setPatients] = useState([]);
   const [visible, setVisible] = useState(false);
+  const [isEdit, setIsEdit] = useState(false);
+  const [editingPatient, setEditingPatient] = useState(null);
   const [form] = Form.useForm();
   const navigate = useNavigate();
 
@@ -19,23 +22,64 @@ const ReceptionSystem = ({ user, onLogout }) => {
     setPatients(data);
   };
 
-  const addPatient = async (values) => {
-    const response = await fetch("http://localhost:5000/api/patients", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ ...values, status: "候診中" }),
-    });
-    const newPatient = await response.json();
-    setPatients([...patients, newPatient]);
-    setVisible(false);
-    form.resetFields();
+  const handleOk = async () => {
+    try {
+      const values = await form.validateFields();
+      if (isEdit) {
+        // Edit existing patient
+        await fetch(`http://localhost:5000/api/patients/${editingPatient.id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(values),
+        });
+        notification.success({ message: "病患更新成功" });
+      } else {
+        // Add new patient
+        const response = await fetch("http://localhost:5000/api/patients", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ ...values, status: "候診中" }),
+        });
+        const newPatient = await response.json();
+        setPatients([...patients, newPatient]);
+        notification.success({ message: "病患新增成功" });
+      }
+      form.resetFields();
+      setVisible(false);
+      fetchPatients();
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const handleLogout = () => {
     onLogout();
     navigate("/login");
+  };
+
+  const addPatient = () => {
+    setIsEdit(false);
+    setVisible(true);
+    form.resetFields();
+  };
+
+  const handleEdit = (record) => {
+    setIsEdit(true);
+    setEditingPatient(record);
+    form.setFieldsValue(record);
+    setVisible(true);
+  };
+
+  const handleDelete = async (id) => {
+    await fetch(`http://localhost:5000/api/patients/${id}`, {
+      method: "DELETE",
+    });
+    notification.success({ message: "Patient deleted successfully" });
+    fetchPatients();
   };
 
   const columns = [
@@ -44,12 +88,34 @@ const ReceptionSystem = ({ user, onLogout }) => {
     { title: "年齡", dataIndex: "age", key: "age" },
     { title: "性別", dataIndex: "gender", key: "gender" },
     { title: "症狀", dataIndex: "condition", key: "condition" },
+    {
+      title: "編輯",
+      key: "actions",
+      render: (text, record) => (
+        <span>
+          <Button
+            icon={<EditOutlined />}
+            onClick={() => handleEdit(record)}
+            style={{ marginRight: 8 }}
+          >
+            Edit
+          </Button>
+          <Button
+            icon={<DeleteOutlined />}
+            onClick={() => handleDelete(record.id)}
+            danger
+          >
+            Delete
+          </Button>
+        </span>
+      ),
+    },
   ];
 
   return (
     <div style={{ padding: 24 }}>
       <h2>櫃檯掛號系統</h2>
-      <Button type="primary" onClick={() => setVisible(true)}>
+      <Button type="primary" icon={<PlusOutlined />} onClick={addPatient}>
         新增病患
       </Button>
       <Button type="default" onClick={handleLogout} style={{ marginLeft: 16 }}>
@@ -61,29 +127,52 @@ const ReceptionSystem = ({ user, onLogout }) => {
         rowKey="id"
         style={{ marginTop: 20 }}
       />
+
       <Modal
-        title="新增病患"
-        visible={visible}
+        title={isEdit ? "編輯病患" : "新增病患"}
+        open={visible}
+        onOk={handleOk}
         onCancel={() => setVisible(false)}
-        footer={null}
       >
-        <Form form={form} layout="vertical" onFinish={addPatient}>
-          <Form.Item name="name" label="姓名" rules={[{ required: true }]}>
+        <Form form={form} layout="vertical">
+          <Form.Item
+            name="name"
+            label="姓名"
+            rules={[
+              { required: true, message: "Please enter the patient's name" },
+            ]}
+          >
             <Input />
           </Form.Item>
-          <Form.Item name="age" label="年齡" rules={[{ required: true }]}>
+          <Form.Item
+            name="age"
+            label="年齡"
+            rules={[
+              { required: true, message: "Please enter the patient's age" },
+            ]}
+          >
+            <Input type="number" />
+          </Form.Item>
+          <Form.Item
+            name="gender"
+            label="性別"
+            rules={[
+              { required: true, message: "Please enter the patient's gender" },
+            ]}
+          >
             <Input />
           </Form.Item>
-          <Form.Item name="gender" label="性別" rules={[{ required: true }]}>
+          <Form.Item
+            name="condition"
+            label="症狀"
+            rules={[
+              {
+                required: true,
+                message: "Please enter the patient's condition",
+              },
+            ]}
+          >
             <Input />
-          </Form.Item>
-          <Form.Item name="condition" label="症狀" rules={[{ required: true }]}>
-            <Input />
-          </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit">
-              提交
-            </Button>
           </Form.Item>
         </Form>
       </Modal>

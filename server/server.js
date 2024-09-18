@@ -137,7 +137,7 @@ app.get("/api/patients", (req, res) => {
 // 新增病患
 app.post("/api/patients", (req, res) => {
   const newPatient = req.body;
-  newPatient.id = patients.length + 1;
+  newPatient.id = patients.findLast((p) => p).id + 1;
   newPatient.callNumber = newPatient.id;
   patients.push(newPatient);
   res.json(newPatient);
