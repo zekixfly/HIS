@@ -78,7 +78,7 @@ const ReceptionSystem = ({ user, onLogout }) => {
     await fetch(`http://localhost:5000/api/patients/${id}`, {
       method: "DELETE",
     });
-    notification.success({ message: "Patient deleted successfully" });
+    notification.success({ message: "病患刪除成功" });
     fetchPatients();
   };
 
