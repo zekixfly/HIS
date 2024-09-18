@@ -1,0 +1,93 @@
+// src/components/CallingSystem/index.scss
+.calling-system {
+    background-color: #f7f7f7;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    text-align: center;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      background-color: #007bff;
+      padding: 10px;
+      border-radius: 8px;
+      color: white;
+  
+      .title {
+        font-size: 24px;
+        font-weight: bold;
+      }
+  
+      .doctors {
+        display: flex;
+        flex-direction: column;
+        text-align: right;
+  
+        .doctor,
+        .nurse {
+          font-size: 16px;
+          span {
+            font-weight: bold;
+          }
+        }
+      }
+    }
+  
+    .number-display {
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 20px;
+  
+      .current-number,
+      .next-number {
+        background-color: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        width: 40%;
+        text-align: center;
+  
+        span {
+          display: block;
+          font-size: 16px;
+          margin-bottom: 10px;
+          color: #555;
+        }
+  
+        .number {
+          font-size: 48px;
+          font-weight: bold;
+          color: red;
+        }
+      }
+    }
+  
+    .queue-list {
+      background-color: white;
+      padding: 10px;
+      border-radius: 8px;
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+  
+      .queue-title {
+        font-size: 18px;
+        margin-bottom: 10px;
+        font-weight: bold;
+      }
+  
+      ul {
+        list-style: none;
+        padding: 0;
+  
+        li {
+          padding: 10px;
+          font-size: 16px;
+          border-bottom: 1px solid #ddd;
+        }
+      }
+    }
+  }
+  
