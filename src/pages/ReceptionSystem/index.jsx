@@ -26,7 +26,7 @@ const ReceptionSystem = ({ user, onLogout }) => {
     try {
       const values = await form.validateFields();
       if (isEdit) {
-        // Edit existing patient
+        // 編輯病患
         await fetch(`http://localhost:5000/api/patients/${editingPatient.id}`, {
           method: "PUT",
           headers: {
@@ -36,7 +36,7 @@ const ReceptionSystem = ({ user, onLogout }) => {
         });
         notification.success({ message: "病患更新成功" });
       } else {
-        // Add new patient
+        // 新增病患
         const response = await fetch("http://localhost:5000/api/patients", {
           method: "POST",
           headers: {
