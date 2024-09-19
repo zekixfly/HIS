@@ -98,14 +98,14 @@ const ReceptionSystem = ({ user, onLogout }) => {
             onClick={() => handleEdit(record)}
             style={{ marginRight: 8 }}
           >
-            Edit
+            修改
           </Button>
           <Button
             icon={<DeleteOutlined />}
             onClick={() => handleDelete(record.id)}
             danger
           >
-            Delete
+            刪除
           </Button>
         </span>
       ),
