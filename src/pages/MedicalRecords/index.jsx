@@ -1,52 +1,68 @@
 // src/components/MedicalRecords/index.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { Table, Button, Form, Input } from "antd";
 import { useNavigate } from "react-router-dom";
+import { PatientContext } from "../../PatientContext"; // 引入 PatientProvider
 
 const MedicalRecords = ({ onLogout }) => {
-  const [patients, setPatients] = useState([]);
+  const patient = useContext(PatientContext);
+  const { patientList, setPatientList } = patient;
   const [saveＭedicalRecords, setSaveＭedicalRecords] = useState(false);
   const [currentPatient, setCurrentPatient] = useState(null); // 新增currentPatient狀態
   const [form] = Form.useForm();
   const navigate = useNavigate();
 
   useEffect(() => {
+    // 從 localStorage 中取得目前叫號病患
+    const currentPatient = JSON.parse(localStorage.getItem("currentPatient"));
+
+    if (currentPatient) {
+      setCurrentPatient(currentPatient);
+    } else {
+      setCurrentPatient(null);
+    }
     fetchPatients();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchPatients = async () => {
     const response = await fetch("http://localhost:5000/api/patients");
     const data = await response.json();
-    setPatients(
+    setPatientList(
       data.filter((p) => p.status === "看診中" || p.status === "候診中")
     );
   };
 
   const callNextPatient = async () => {
     setSaveＭedicalRecords(false);
-    const nextPatient = patients.find((p) => p.status === "候診中");
+    const nextPatient = patientList.find((p) => p.status === "候診中");
     if (nextPatient) {
-      const updatedPatient = { ...nextPatient, status: "看診中" };
+      const updatedNextPatient = { ...nextPatient, status: "看診中" };
       await fetch(`http://localhost:5000/api/patients/${nextPatient.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(updatedPatient),
+        body: JSON.stringify(updatedNextPatient),
       });
 
       // 將更新的信息存入 localStorage
-      localStorage.setItem("currentPatient", JSON.stringify(updatedPatient));
+      localStorage.setItem(
+        "currentPatient",
+        JSON.stringify(updatedNextPatient)
+      );
 
       // 手動觸發 storage 事件，確保其他頁面接收到變化
       window.dispatchEvent(new Event("storage"));
 
       // 設定當前病患
-      setCurrentPatient(updatedPatient);
+      setCurrentPatient(updatedNextPatient);
 
       // 更新醫師頁面的病患列表
-      setPatients(
-        patients.map((p) => (p.id === nextPatient.id ? updatedPatient : p))
+      setPatientList(
+        patientList.map((p) =>
+          p.id === nextPatient.id ? updatedNextPatient : p
+        )
       );
     } else {
       alert("已無待叫號的病患");
@@ -74,20 +90,23 @@ const MedicalRecords = ({ onLogout }) => {
   const completeConsultation = async () => {
     setSaveＭedicalRecords(false);
     if (currentPatient) {
-      const updatedPatient = { ...currentPatient, status: "已完成" };
+      const updatedNextPatient = { ...currentPatient, status: "已完成" };
       await fetch(`http://localhost:5000/api/patients/${currentPatient.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(updatedPatient),
+        body: JSON.stringify(updatedNextPatient),
       });
 
       // 清除 currentPatient
       setCurrentPatient(null);
 
       // 將更新的信息存入 localStorage
-      localStorage.setItem("currentPatient", JSON.stringify(updatedPatient));
+      localStorage.setItem(
+        "currentPatient",
+        JSON.stringify(updatedNextPatient)
+      );
 
       // 手動觸發 storage 事件，確保其他頁面接收到變化
       window.dispatchEvent(new Event("storage"));
@@ -100,7 +119,7 @@ const MedicalRecords = ({ onLogout }) => {
   const updatePatient = async (values) => {
     console.log("test", values);
     // setSelectedPatient()
-    // const updatedPatient = { ...selectedPatient, ...values };
+    // const updatedNextPatient = { ...selectedPatient, ...values };
     await fetch(`http://localhost:5000/api/patients/${values.id}`, {
       method: "PUT",
       headers: {
@@ -111,7 +130,11 @@ const MedicalRecords = ({ onLogout }) => {
 
     // 更新病患列表
     setCurrentPatient(values);
-    setPatients(patients.map((p) => (p.id === values.id ? values : p)));
+
+    // 將更新的信息存入 localStorage
+    localStorage.setItem("currentPatient", JSON.stringify(values));
+
+    setPatientList(patientList.map((p) => (p.id === values.id ? values : p)));
     setSaveＭedicalRecords(true);
     // setSelectedPatient(null);
   };
@@ -119,7 +142,7 @@ const MedicalRecords = ({ onLogout }) => {
   const handleLogout = () => {
     onLogout();
     navigate("/login");
-    localStorage.clear();
+    // localStorage.clear();
   };
 
   const columns = [
@@ -226,7 +249,7 @@ const MedicalRecords = ({ onLogout }) => {
         </Form.Item>
       </Form>
       <Table
-        dataSource={patients}
+        dataSource={patientList}
         columns={columns}
         rowKey="id"
         style={{ marginTop: 20 }}

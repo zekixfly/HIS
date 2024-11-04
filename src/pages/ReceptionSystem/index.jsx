@@ -1,11 +1,13 @@
 // src/pages/ReceptionSystem/index.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { Table, Button, Form, Input, Modal, notification } from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
+import { PatientContext } from "../../PatientContext"; // 引入 PatientProvider
 
 const ReceptionSystem = ({ user, onLogout }) => {
-  const [patients, setPatients] = useState([]);
+  const patient = useContext(PatientContext);
+  const { patientList, setPatientList } = patient;
   const [visible, setVisible] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
   const [editingPatient, setEditingPatient] = useState(null);
@@ -14,12 +16,13 @@ const ReceptionSystem = ({ user, onLogout }) => {
 
   useEffect(() => {
     fetchPatients();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchPatients = async () => {
     const response = await fetch("http://localhost:5000/api/patients");
     const data = await response.json();
-    setPatients(data);
+    setPatientList(data);
   };
 
   const handleOk = async () => {
@@ -45,7 +48,7 @@ const ReceptionSystem = ({ user, onLogout }) => {
           body: JSON.stringify({ ...values, status: "候診中" }),
         });
         const newPatient = await response.json();
-        setPatients([...patients, newPatient]);
+        setPatientList([...patientList, newPatient]);
         notification.success({ message: "病患新增成功" });
       }
       form.resetFields();
@@ -122,7 +125,7 @@ const ReceptionSystem = ({ user, onLogout }) => {
         登出
       </Button>
       <Table
-        dataSource={patients}
+        dataSource={patientList}
         columns={columns}
         rowKey="id"
         style={{ marginTop: 20 }}
