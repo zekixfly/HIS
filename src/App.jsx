@@ -1,5 +1,5 @@
 // src/App.jsx
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   BrowserRouter as Router,
   Route,
@@ -18,7 +18,11 @@ const PrivateRoute = ({ user, children }) => {
 
 const App = () => {
   const [user, setUser] = useState(null);
-
+  useEffect(() => {
+    return () => {
+      localStorage.clear();
+    };
+  }, []);
   const onLogout = () => {
     setUser(null);
     // 這裡可以添加其他登出邏輯，比如清除 token 或者其他資料

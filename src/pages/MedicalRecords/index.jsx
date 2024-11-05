@@ -1,14 +1,16 @@
 // src/components/MedicalRecords/index.jsx
 import React, { useState, useEffect, useContext } from "react";
-import { Table, Button, Form, Input } from "antd";
+import { Table, Button, Form, Input, Modal } from "antd";
 import { useNavigate } from "react-router-dom";
 import { PatientContext } from "../../PatientContext"; // 引入 PatientProvider
 
 const MedicalRecords = ({ onLogout }) => {
   const patient = useContext(PatientContext);
   const { patientList, setPatientList } = patient;
+  const [historyList, setHistoryList] = useState(null);
   const [saveＭedicalRecords, setSaveＭedicalRecords] = useState(false);
   const [currentPatient, setCurrentPatient] = useState(null); // 新增currentPatient狀態
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [form] = Form.useForm();
   const navigate = useNavigate();
 
@@ -28,6 +30,7 @@ const MedicalRecords = ({ onLogout }) => {
   const fetchPatients = async () => {
     const response = await fetch("http://localhost:5000/api/patients");
     const data = await response.json();
+    setHistoryList(data);
     setPatientList(
       data.filter((p) => p.status === "看診中" || p.status === "候診中")
     );
@@ -135,6 +138,7 @@ const MedicalRecords = ({ onLogout }) => {
     localStorage.setItem("currentPatient", JSON.stringify(values));
 
     setPatientList(patientList.map((p) => (p.id === values.id ? values : p)));
+    setHistoryList(historyList.map((p) => (p.id === values.id ? values : p)));
     setSaveＭedicalRecords(true);
     // setSelectedPatient(null);
   };
@@ -143,6 +147,18 @@ const MedicalRecords = ({ onLogout }) => {
     onLogout();
     navigate("/login");
     // localStorage.clear();
+  };
+
+  const showModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleOk = () => {
+    setIsModalOpen(false);
+  };
+
+  const handleCancel = () => {
+    setIsModalOpen(false);
   };
 
   const columns = [
@@ -232,7 +248,12 @@ const MedicalRecords = ({ onLogout }) => {
         </Form.Item>
         <Form.Item>
           <Button
-            disabled={saveＭedicalRecords}
+            disabled={
+              saveＭedicalRecords ||
+              !patientList?.some(
+                (p) => p.status === "看診中" || p.status === "候診中"
+              )
+            }
             type="primary"
             htmlType="submit"
           >
@@ -248,12 +269,50 @@ const MedicalRecords = ({ onLogout }) => {
           </Button>
         </Form.Item>
       </Form>
-      <Table
-        dataSource={patientList}
-        columns={columns}
-        rowKey="id"
-        style={{ marginTop: 20 }}
-      />
+      <div
+        style={{
+          border: "5px solid gray",
+          borderRadius: 5,
+          padding: "5px",
+          margin: "5px 0px",
+        }}
+      >
+        <Button
+          type="primary"
+          color="danger"
+          variant="outlined"
+          style={{ marginLeft: 8 }}
+          onClick={showModal}
+        >
+          歷史病例記錄表
+        </Button>
+        <Modal
+          title="歷史病例記錄表"
+          open={isModalOpen}
+          onOk={handleOk}
+          onCancel={handleCancel}
+        >
+          <Table
+            dataSource={historyList}
+            columns={[
+              ...columns,
+              {
+                title: "描述",
+                dataIndex: "description",
+                key: "description",
+              },
+            ]}
+            rowKey="id"
+            style={{ marginTop: 20 }}
+          />
+        </Modal>
+        <Table
+          dataSource={patientList}
+          columns={columns}
+          rowKey="id"
+          style={{ marginTop: 20 }}
+        />
+      </div>
     </div>
   );
 };
