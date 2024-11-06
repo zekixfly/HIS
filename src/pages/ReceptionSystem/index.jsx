@@ -20,7 +20,7 @@ const ReceptionSystem = ({ user, onLogout }) => {
   }, []);
 
   const fetchPatients = async () => {
-    const response = await fetch("http://localhost:5000/api/patients");
+    const response = await fetch("/api/patients");
     const data = await response.json();
     setPatientList(data);
   };
@@ -30,7 +30,7 @@ const ReceptionSystem = ({ user, onLogout }) => {
       const values = await form.validateFields();
       if (isEdit) {
         // 編輯病患
-        await fetch(`http://localhost:5000/api/patients/${editingPatient.id}`, {
+        await fetch(`/api/patients/${editingPatient.id}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -40,7 +40,7 @@ const ReceptionSystem = ({ user, onLogout }) => {
         notification.success({ message: "病患更新成功" });
       } else {
         // 新增病患
-        const response = await fetch("http://localhost:5000/api/patients", {
+        const response = await fetch("/api/patients", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -78,7 +78,7 @@ const ReceptionSystem = ({ user, onLogout }) => {
   };
 
   const handleDelete = async (id) => {
-    await fetch(`http://localhost:5000/api/patients/${id}`, {
+    await fetch(`/api/patients/${id}`, {
       method: "DELETE",
     });
     notification.success({ message: "病患刪除成功" });

@@ -28,7 +28,7 @@ const MedicalRecords = ({ onLogout }) => {
   }, []);
 
   const fetchPatients = async () => {
-    const response = await fetch("http://localhost:5000/api/patients");
+    const response = await fetch("/api/patients");
     const data = await response.json();
     setHistoryList(data);
     setPatientList(
@@ -41,7 +41,7 @@ const MedicalRecords = ({ onLogout }) => {
     const nextPatient = patientList.find((p) => p.status === "候診中");
     if (nextPatient) {
       const updatedNextPatient = { ...nextPatient, status: "看診中" };
-      await fetch(`http://localhost:5000/api/patients/${nextPatient.id}`, {
+      await fetch(`/api/patients/${nextPatient.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -94,7 +94,7 @@ const MedicalRecords = ({ onLogout }) => {
     setSaveＭedicalRecords(false);
     if (currentPatient) {
       const updatedNextPatient = { ...currentPatient, status: "已完成" };
-      await fetch(`http://localhost:5000/api/patients/${currentPatient.id}`, {
+      await fetch(`/api/patients/${currentPatient.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -123,7 +123,7 @@ const MedicalRecords = ({ onLogout }) => {
     console.log("test", values);
     // setSelectedPatient()
     // const updatedNextPatient = { ...selectedPatient, ...values };
-    await fetch(`http://localhost:5000/api/patients/${values.id}`, {
+    await fetch(`/api/patients/${values.id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -226,7 +226,9 @@ const MedicalRecords = ({ onLogout }) => {
           },
         ]}
       >
-        <Form.Item name="id" style={{ display: "none" }}></Form.Item>
+        <Form.Item name="id" style={{ display: "none" }}>
+          <Input disabled={true} />
+        </Form.Item>
         <Form.Item
           name="callNumber"
           label="目前號碼"

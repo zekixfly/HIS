@@ -17,8 +17,7 @@
 ### `後端`
 
 ```
-server
-└── server.js
+server.js
 ```
 
 ### `前端`
@@ -51,7 +50,6 @@ yarn install
 ### `啟動後端伺服器`
 
 ```
-cd server
 node server
 ```
 

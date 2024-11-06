@@ -1,10 +1,11 @@
 // server/server.js
 const express = require("express");
-const bodyParser = require("body-parser");
-const cors = require("cors");
+
 const app = express();
-app.use(bodyParser.json());
-app.use(cors());
+
+app.use(express.json());
+
+const PORT = 5000;
 
 // 用戶數據
 const users = [
@@ -117,7 +118,7 @@ let patients = [
 ];
 
 // 登入API
-app.post("/api/login", (req, res) => {
+app.post("/login", (req, res) => {
   const { username, password } = req.body;
   const user = users.find(
     (u) => u.username === username && u.password === password
@@ -130,12 +131,12 @@ app.post("/api/login", (req, res) => {
 });
 
 // 獲取病患資料
-app.get("/api/patients", (req, res) => {
+app.get("/patients", (req, res) => {
   res.json(patients);
 });
 
 // 新增病患
-app.post("/api/patients", (req, res) => {
+app.post("/patients", (req, res) => {
   const newPatient = req.body;
   newPatient.id = patients.findLast((p) => p).id + 1;
   newPatient.callNumber = newPatient.id;
@@ -144,7 +145,7 @@ app.post("/api/patients", (req, res) => {
 });
 
 // 更新病患資料
-app.put("/api/patients/:id", (req, res) => {
+app.put("/patients/:id", (req, res) => {
   const patientId = parseInt(req.params.id);
   const updatedPatient = req.body;
   const index = patients.findIndex((p) => p.id === patientId);
@@ -157,14 +158,13 @@ app.put("/api/patients/:id", (req, res) => {
 });
 
 // 刪除病患
-app.delete("/api/patients/:id", (req, res) => {
+app.delete("/patients/:id", (req, res) => {
   const patientId = parseInt(req.params.id);
   patients = patients.filter((p) => p.id !== patientId);
   res.json({ message: "Patient deleted" });
 });
 
 // 啟動服務
-const PORT = 5000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
