@@ -19,10 +19,21 @@ const PrivateRoute = ({ user, children }) => {
 const App = () => {
   const [user, setUser] = useState(null);
   useEffect(() => {
-    return () => {
-      localStorage.clear();
+    // 當重新整理或離開頁面時會檢查是否還有未完成看診的病患，如有則不清理Storage紀錄，否則清理。
+    return async () => {
+      const data = await fetchPatients();
+      if (!data.some((p) => p.status === "看診中" || p.status === "候診中")) {
+        localStorage.clear();
+      }
     };
   }, []);
+
+  const fetchPatients = async () => {
+    const response = await fetch("/api/patients");
+    const data = await response.json();
+    return data;
+  };
+
   const onLogout = () => {
     setUser(null);
     // 這裡可以添加其他登出邏輯，比如清除 token 或者其他資料
