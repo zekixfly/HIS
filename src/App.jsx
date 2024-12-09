@@ -10,7 +10,7 @@ import Login from "./pages/Login";
 import ReceptionSystem from "./pages/ReceptionSystem";
 import CallingSystem from "./pages/CallingSystem";
 import MedicalRecords from "./pages/MedicalRecords";
-import { PatientProvider } from "./PatientContext"; // 引入 PatientProvider
+import { PatientProvider } from "./context/PatientContext"; // 引入 PatientProvider
 
 const PrivateRoute = ({ user, children }) => {
   return user ? children : <Navigate to="/login" />;

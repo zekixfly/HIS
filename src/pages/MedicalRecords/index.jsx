@@ -1,8 +1,8 @@
 // src/components/MedicalRecords/index.jsx
 import React, { useState, useEffect, useContext } from "react";
-import { Table, Button, Form, Input, Modal } from "antd";
+import { Table, Button, Form, Input, Modal, Tag } from "antd";
 import { useNavigate } from "react-router-dom";
-import { PatientContext } from "../../PatientContext"; // 引入 PatientProvider
+import { PatientContext } from "../../context/PatientContext"; // 引入 PatientProvider
 
 const MedicalRecords = ({ onLogout }) => {
   const patient = useContext(PatientContext);
@@ -165,7 +165,33 @@ const MedicalRecords = ({ onLogout }) => {
     { title: "號碼", dataIndex: "callNumber", key: "callNumber" },
     { title: "姓名", dataIndex: "name", key: "name" },
     { title: "症狀", dataIndex: "condition", key: "condition" },
-    { title: "狀態", dataIndex: "status", key: "status" },
+    {
+      title: "狀態",
+      dataIndex: "status",
+      key: "status",
+      render: (tag) => {
+        let color = "geekblue";
+        switch (tag) {
+          case "候診中":
+            color = "geekblue";
+            break;
+          case "看診中":
+            color = "green";
+            break;
+          case "已完成":
+            color = "volcano";
+            break;
+          default:
+            color = "geekblue";
+            break;
+        }
+        return (
+          <Tag color={color} key={tag}>
+            {tag.toUpperCase()}
+          </Tag>
+        );
+      },
+    },
   ];
 
   return (

@@ -3,7 +3,7 @@ import React, { useState, useEffect, useContext } from "react";
 import { Table, Button, Form, Input, Modal, notification } from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
-import { PatientContext } from "../../PatientContext"; // 引入 PatientProvider
+import { PatientContext } from "../../context/PatientContext"; // 引入 PatientProvider
 
 const ReceptionSystem = ({ user, onLogout }) => {
   const patient = useContext(PatientContext);
