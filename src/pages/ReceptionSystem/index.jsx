@@ -1,62 +1,46 @@
 // src/pages/ReceptionSystem/index.jsx
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { Table, Button, Form, Input, Modal, notification } from "antd";
 import { PlusOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
-import { PatientContext } from "../../context/PatientContext"; // 引入 PatientProvider
+import { PatientContext } from "../../context/PatientContext";
 
 const ReceptionSystem = ({ user, onLogout }) => {
-  const patient = useContext(PatientContext);
-  const { patientList, setPatientList } = patient;
+  const {patientList, createPatient, readPatients, updatePatient, deletePatient} = useContext(PatientContext);
   const [visible, setVisible] = useState(false);
   const [isEdit, setIsEdit] = useState(false);
-  const [editingPatient, setEditingPatient] = useState(null);
   const [form] = Form.useForm();
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchPatients();
+    (async () => await readPatients())();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const fetchPatients = async () => {
-    const response = await fetch("/api/patients");
-    const data = await response.json();
-    setPatientList(data);
-  };
 
   const handleOk = async () => {
     try {
-      const values = await form.validateFields();
+      const formValues = await form.getFieldValue();      
       if (isEdit) {
         // 編輯病患
-        await fetch(`/api/patients/${editingPatient.id}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(values),
-        });
+        await updatePatient(formValues);
         notification.success({ message: "病患更新成功" });
       } else {
         // 新增病患
-        const response = await fetch("/api/patients", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ ...values, status: "候診中" }),
-        });
-        const newPatient = await response.json();
-        setPatientList([...patientList, newPatient]);
+        await createPatient(formValues);
         notification.success({ message: "病患新增成功" });
       }
       form.resetFields();
       setVisible(false);
-      fetchPatients();
     } catch (error) {
       console.error(error);
     }
+  };
+
+  const handleDelete = async (id) => {
+    await deletePatient(id);
+    notification.success({ message: "病患刪除成功" });
+    readPatients();
   };
 
   const handleLogout = () => {
@@ -70,20 +54,16 @@ const ReceptionSystem = ({ user, onLogout }) => {
     form.resetFields();
   };
 
-  const handleEdit = (record) => {
+  const handleEdit = (fromValues) => {
+    console.log('record', fromValues);
+    
     setIsEdit(true);
-    setEditingPatient(record);
-    form.setFieldsValue(record);
+    // setEditingPatient(record);
+    form.setFieldsValue(fromValues);
     setVisible(true);
   };
 
-  const handleDelete = async (id) => {
-    await fetch(`/api/patients/${id}`, {
-      method: "DELETE",
-    });
-    notification.success({ message: "病患刪除成功" });
-    fetchPatients();
-  };
+
 
   const columns = [
     { title: "號碼", dataIndex: "callNumber", key: "callNumber" },
@@ -94,18 +74,18 @@ const ReceptionSystem = ({ user, onLogout }) => {
     {
       title: "編輯",
       key: "actions",
-      render: (text, record) => (
+      render: (text, values) => (
         <span>
           <Button
             icon={<EditOutlined />}
-            onClick={() => handleEdit(record)}
+            onClick={() => handleEdit(values)}
             style={{ marginRight: 8 }}
           >
             修改
           </Button>
           <Button
             icon={<DeleteOutlined />}
-            onClick={() => handleDelete(record.id)}
+            onClick={() => handleDelete(values.id)}
             danger
           >
             刪除

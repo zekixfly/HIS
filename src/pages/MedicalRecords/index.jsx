@@ -5,9 +5,8 @@ import { useNavigate } from "react-router-dom";
 import { PatientContext } from "../../context/PatientContext"; // 引入 PatientProvider
 
 const MedicalRecords = ({ onLogout }) => {
-  const patient = useContext(PatientContext);
-  const { patientList, setPatientList } = patient;
-  const [historyList, setHistoryList] = useState(null);
+  const { patientList, readPatients, updatePatient } = useContext(PatientContext);
+  const [filterPatientList, setFilterPatientList] = useState(null);
   const [saveＭedicalRecords, setSaveＭedicalRecords] = useState(false);
   const [currentPatient, setCurrentPatient] = useState(null); // 新增currentPatient狀態
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -23,16 +22,19 @@ const MedicalRecords = ({ onLogout }) => {
     } else {
       setCurrentPatient(null);
     }
-    fetchPatients();
+    // fetchPatients();
+    (async () => {
+      await getFilterPatientList();
+    })();
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const fetchPatients = async () => {
-    const response = await fetch("/api/patients");
-    const data = await response.json();
-    setHistoryList(data);
-    setPatientList(
-      data.filter((p) => p.status === "看診中" || p.status === "候診中")
+  const getFilterPatientList = async () => {
+    const patientsData = await readPatients();
+    console.log("patientList", patientList);
+    setFilterPatientList(
+      patientsData.filter((p) => p.status === "看診中" || p.status === "候診中")
     );
   };
 
@@ -41,13 +43,8 @@ const MedicalRecords = ({ onLogout }) => {
     const nextPatient = patientList.find((p) => p.status === "候診中");
     if (nextPatient) {
       const updatedNextPatient = { ...nextPatient, status: "看診中" };
-      await fetch(`/api/patients/${nextPatient.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updatedNextPatient),
-      });
+
+      await updatePatient(updatedNextPatient);
 
       // 將更新的信息存入 localStorage
       localStorage.setItem(
@@ -62,11 +59,14 @@ const MedicalRecords = ({ onLogout }) => {
       setCurrentPatient(updatedNextPatient);
 
       // 更新醫師頁面的病患列表
-      setPatientList(
-        patientList.map((p) =>
-          p.id === nextPatient.id ? updatedNextPatient : p
-        )
-      );
+      (async () => {
+        await getFilterPatientList();
+      })();
+      // setPatientList(
+      //   patientList.map((p) =>
+      //     p.id === nextPatient.id ? updatedNextPatient : p
+      //   )
+      // );
     } else {
       alert("已無待叫號的病患");
     }
@@ -94,13 +94,8 @@ const MedicalRecords = ({ onLogout }) => {
     setSaveＭedicalRecords(false);
     if (currentPatient) {
       const updatedNextPatient = { ...currentPatient, status: "已完成" };
-      await fetch(`/api/patients/${currentPatient.id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updatedNextPatient),
-      });
+
+      await updatePatient(updatedNextPatient);
 
       // 清除 currentPatient
       setCurrentPatient(null);
@@ -115,30 +110,22 @@ const MedicalRecords = ({ onLogout }) => {
       window.dispatchEvent(new Event("storage"));
 
       // 更新醫師頁面的病患列表
-      fetchPatients();
+      // fetchPatients();
+      (async () => {
+        await getFilterPatientList();
+      })();
     }
   };
 
-  const updatePatient = async (values) => {
-    console.log("test", values);
-    // setSelectedPatient()
-    // const updatedNextPatient = { ...selectedPatient, ...values };
-    await fetch(`/api/patients/${values.id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(values),
-    });
+  const handleEdit = async (formValues) => {
+    await updatePatient(formValues);
 
     // 更新病患列表
-    setCurrentPatient(values);
+    setCurrentPatient(formValues);
 
     // 將更新的信息存入 localStorage
-    localStorage.setItem("currentPatient", JSON.stringify(values));
+    // localStorage.setItem("currentPatient", JSON.stringify(formValues));
 
-    setPatientList(patientList.map((p) => (p.id === values.id ? values : p)));
-    setHistoryList(historyList.map((p) => (p.id === values.id ? values : p)));
     setSaveＭedicalRecords(true);
     // setSelectedPatient(null);
   };
@@ -164,6 +151,7 @@ const MedicalRecords = ({ onLogout }) => {
   const columns = [
     { title: "號碼", dataIndex: "callNumber", key: "callNumber" },
     { title: "姓名", dataIndex: "name", key: "name" },
+    { title: "年齡", dataIndex: "age", key: "age" },
     { title: "症狀", dataIndex: "condition", key: "condition" },
     {
       title: "狀態",
@@ -215,7 +203,7 @@ const MedicalRecords = ({ onLogout }) => {
       <Form
         form={form}
         layout="horizontal"
-        onFinish={updatePatient}
+        onFinish={handleEdit}
         style={{
           border: "5px solid gray",
           borderRadius: 5,
@@ -237,6 +225,10 @@ const MedicalRecords = ({ onLogout }) => {
           {
             name: ["name"],
             value: currentPatient ? currentPatient.name : "--",
+          },
+          {
+            name: ["age"],
+            value: currentPatient ? currentPatient.age : "--",
           },
           {
             name: ["condition"],
@@ -267,6 +259,9 @@ const MedicalRecords = ({ onLogout }) => {
         </Form.Item>
         <Form.Item name="name" label="姓名" rules={[{ required: true }]}>
           <Input />
+        </Form.Item>
+        <Form.Item name="age" label="年齡" rules={[{ required: true }]}>
+          <Input type="number" disabled={true}/>
         </Form.Item>
         <Form.Item name="condition" label="症狀" rules={[{ required: true }]}>
           <Input />
@@ -321,7 +316,7 @@ const MedicalRecords = ({ onLogout }) => {
           onCancel={handleCancel}
         >
           <Table
-            dataSource={historyList}
+            dataSource={patientList}
             columns={[
               ...columns,
               {
@@ -335,7 +330,7 @@ const MedicalRecords = ({ onLogout }) => {
           />
         </Modal>
         <Table
-          dataSource={patientList}
+          dataSource={filterPatientList}
           columns={columns}
           rowKey="id"
           style={{ marginTop: 20 }}

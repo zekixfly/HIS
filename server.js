@@ -147,11 +147,12 @@ app.post("/patients", (req, res) => {
 // 更新病患資料
 app.put("/patients/:id", (req, res) => {
   const patientId = parseInt(req.params.id);
-  const updatedPatient = req.body;
+  req.body.age = Number(req.body.age);
+  const updatedPatient = req.body 
   const index = patients.findIndex((p) => p.id === patientId);
   if (index !== -1) {
     patients[index] = { ...patients[index], ...updatedPatient };
-    res.json(patients[index]);
+    res.json(patients);
   } else {
     res.status(404).json({ message: "Patient not found" });
   }

@@ -1,11 +1,12 @@
 // src/pages/CallingSystem/index.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { notification, Button } from "antd";
 import "./index.scss";
+import { PatientContext } from "../../context/PatientContext";
 
 const CallingSystem = () => {
-  const [patients, setPatients] = useState([]);
+  const { patientList, readPatients } = useContext(PatientContext);
   const [currentCall, setCurrentCall] = useState(null);
   const [nextCall, setNextCall] = useState(null);
   const navigate = useNavigate();
@@ -13,7 +14,7 @@ const CallingSystem = () => {
   // let waitingList = findNextCallIndex ? patients.slice(findNextCallIndex + 1) : patients.findLast(p => p?.id === currentCall?.id) ? "Finish!": patients;
 
   useEffect(() => {
-    fetchPatients();
+    getCalls();
 
     // 監聽 localStorage 變化
     const handleStorageChange = () => {
@@ -22,7 +23,7 @@ const CallingSystem = () => {
         notification.info({
           message: `請病患 ${updatedPatient.name} 到診間`,
         });
-        fetchPatients(); // 當病患更新時，重新加載病患列表
+        getCalls(); // 當病患更新時，重新加載病患列表
       }
     };
 
@@ -33,10 +34,8 @@ const CallingSystem = () => {
     };
   }, []);
 
-  const fetchPatients = async () => {
-    const response = await fetch("/api/patients");
-    const data = await response.json();
-    setPatients(data);
+  const getCalls = async () => {
+    const patientsData = await readPatients();
 
     // 從 localStorage 中取得目前叫號病患
     const currentPatient = JSON.parse(localStorage.getItem("currentPatient"));
@@ -44,7 +43,7 @@ const CallingSystem = () => {
     if (currentPatient) {
       // 如果存在叫號病患，則顯示目前號碼及下一位號碼
       setCurrentCall(currentPatient);
-      const nextPatient = data.find(
+      const nextPatient = patientsData.find(
         (p) =>
           p.status === "候診中" && p.callNumber !== currentPatient.callNumber
       );
@@ -90,7 +89,7 @@ const CallingSystem = () => {
       <div className="queue-list">
         <div className="queue-title">候診名單</div>
         <ul>
-          {patients.map((patient) => (
+          {patientList?.map((patient) => (
             <li key={patient.id}>
               {patient.callNumber} 號 {patient.name} ({patient.condition})
             </li>
