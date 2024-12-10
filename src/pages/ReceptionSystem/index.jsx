@@ -19,8 +19,8 @@ const ReceptionSystem = ({ user, onLogout }) => {
 
 
   const handleOk = async () => {
-    try {
-      const formValues = await form.getFieldValue();      
+    try {   
+      const formValues = form.getFieldValue();      
       if (isEdit) {
         // 編輯病患
         await updatePatient(formValues);

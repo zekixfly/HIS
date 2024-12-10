@@ -32,6 +32,7 @@ const CallingSystem = () => {
     return () => {
       window.removeEventListener("storage", handleStorageChange);
     };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const getCalls = async () => {

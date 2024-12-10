@@ -1,5 +1,6 @@
 // server/server.js
 const express = require("express");
+const { v4: uuidv4 } = require('uuid');
 
 const app = express();
 
@@ -16,7 +17,7 @@ const users = [
 // 病患數據
 let patients = [
   {
-    id: 1,
+    id: uuidv4(),
     name: "張三",
     age: 30,
     gender: "male",
@@ -26,7 +27,7 @@ let patients = [
     callNumber: 1,
   },
   {
-    id: 2,
+    id: uuidv4(),
     name: "李四",
     age: 25,
     gender: "female",
@@ -36,7 +37,7 @@ let patients = [
     callNumber: 2,
   },
   {
-    id: 3,
+    id: uuidv4(),
     name: "王五",
     age: 45,
     gender: "male",
@@ -46,7 +47,7 @@ let patients = [
     callNumber: 3,
   },
   {
-    id: 4,
+    id: uuidv4(),
     name: "趙六",
     age: 60,
     gender: "female",
@@ -56,7 +57,7 @@ let patients = [
     callNumber: 4,
   },
   {
-    id: 5,
+    id: uuidv4(),
     name: "錢七",
     age: 50,
     gender: "male",
@@ -66,7 +67,7 @@ let patients = [
     callNumber: 5,
   },
   {
-    id: 6,
+    id: uuidv4(),
     name: "孫八",
     age: 28,
     gender: "female",
@@ -74,46 +75,6 @@ let patients = [
     status: "候診中",
     description: "",
     callNumber: 6,
-  },
-  {
-    id: 7,
-    name: "周九",
-    age: 65,
-    gender: "male",
-    condition: "肺炎",
-    status: "候診中",
-    description: "",
-    callNumber: 7,
-  },
-  {
-    id: 8,
-    name: "吳十",
-    age: 35,
-    gender: "female",
-    condition: "中風",
-    status: "候診中",
-    description: "",
-    callNumber: 8,
-  },
-  {
-    id: 9,
-    name: "鄭十一",
-    age: 40,
-    gender: "male",
-    condition: "冠心病",
-    status: "候診中",
-    description: "",
-    callNumber: 9,
-  },
-  {
-    id: 10,
-    name: "王十二",
-    age: 55,
-    gender: "female",
-    condition: "哮喘",
-    status: "候診中",
-    description: "",
-    callNumber: 10,
   },
 ];
 
@@ -138,17 +99,17 @@ app.get("/patients", (req, res) => {
 // 新增病患
 app.post("/patients", (req, res) => {
   const newPatient = req.body;
-  newPatient.id = patients.findLast((p) => p).id + 1;
-  newPatient.callNumber = newPatient.id;
+  newPatient.id = uuidv4();
+  newPatient.callNumber = patients.findLast((p) => p).callNumber + 1;
   patients.push(newPatient);
   res.json(newPatient);
 });
 
 // 更新病患資料
 app.put("/patients/:id", (req, res) => {
-  const patientId = parseInt(req.params.id);
+  const patientId = req.params.id;
   req.body.age = Number(req.body.age);
-  const updatedPatient = req.body 
+  const updatedPatient = req.body;
   const index = patients.findIndex((p) => p.id === patientId);
   if (index !== -1) {
     patients[index] = { ...patients[index], ...updatedPatient };
@@ -160,7 +121,7 @@ app.put("/patients/:id", (req, res) => {
 
 // 刪除病患
 app.delete("/patients/:id", (req, res) => {
-  const patientId = parseInt(req.params.id);
+  const patientId = req.params.id;
   patients = patients.filter((p) => p.id !== patientId);
   res.json({ message: "Patient deleted" });
 });
